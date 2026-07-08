@@ -1,17 +1,13 @@
 const { z } = require('zod');
 
-const nullableUrlSchema = z
-  .union([z.string().trim().url().max(2048), z.literal(''), z.null()])
-  .optional()
-  .transform((value) => (value === '' ? null : value));
-
 const updateMeSchema = z
   .object({
+    files: z.any().optional(),
     body: z
       .object({
         username: z.string().trim().min(3).max(30).optional(),
-        avatarUrl: nullableUrlSchema,
-        bannerUrl: nullableUrlSchema,
+        avatar: z.any().optional(),
+        banner: z.any().optional(),
         bio: z
           .union([z.string().trim().max(500), z.null()])
           .optional()
@@ -19,7 +15,7 @@ const updateMeSchema = z
       })
       .strict(),
   })
-  .refine((data) => Object.keys(data.body).length > 0, {
+  .refine((data) => Object.keys(data.body).length > 0 || Boolean(data.files?.avatar?.length) || Boolean(data.files?.banner?.length), {
     path: ['body'],
     message: 'At least one field is required',
   });

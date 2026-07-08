@@ -9,7 +9,7 @@ const getMe = asyncHandler(async (req, res) => {
 });
 
 const updateMe = asyncHandler(async (req, res) => {
-  const data = await userService.updateMe(req.user.id, req.validated.body);
+  const data = await userService.updateMe(req.user.id, req.validated?.body || {}, req.files || {});
 
   return sendSuccess(res, data);
 });

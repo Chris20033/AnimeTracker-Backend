@@ -7,6 +7,7 @@ function validate(schema) {
       body: req.body,
       params: req.params,
       query: req.query,
+      files: req.files,
     });
 
     if (!result.success) {
