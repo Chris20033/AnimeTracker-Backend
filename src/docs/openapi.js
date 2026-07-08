@@ -307,13 +307,13 @@ const openApiSpec = {
         requestBody: {
           required: true,
           content: {
-            'application/json': {
+            'multipart/form-data': {
               schema: {
                 type: 'object',
                 properties: {
                   username: { type: 'string', minLength: 3, maxLength: 30, example: 'animefan' },
-                  avatarUrl: { type: 'string', nullable: true, example: null },
-                  bannerUrl: { type: 'string', nullable: true, example: null },
+                  avatar: { type: 'string', format: 'binary' },
+                  banner: { type: 'string', format: 'binary' },
                   bio: { type: 'string', nullable: true, maxLength: 500, example: 'Watching seasonal anime.' },
                 },
               },

@@ -1,5 +1,6 @@
 const { ERROR_CODES } = require('../constants/errorCodes');
 const userRepository = require('../repositories/user.repository');
+const { uploadAvatar, uploadBanner } = require('./cloudinary.service');
 const { AppError } = require('../utils/AppError');
 
 function serializePrivateProfile(user) {
@@ -53,16 +54,43 @@ async function getMe(userId) {
   return serializePrivateProfile(user);
 }
 
-async function updateMe(userId, input) {
-  if (input.username) {
-    const existingUser = await userRepository.findUserByUsername(input.username);
+async function updateMe(userId, input, files = {}) {
+  const currentUser = await userRepository.findUserById(userId);
 
-    if (existingUser && existingUser.id !== userId) {
-      throw new AppError('Username already exists', 409, ERROR_CODES.USERNAME_ALREADY_EXISTS);
-    }
+  if (!currentUser) {
+    throw new AppError('User not found', 404, ERROR_CODES.RESOURCE_NOT_FOUND);
   }
 
-  const user = await userRepository.updateUserProfile(userId, input);
+  const { avatar, banner, ...profileInput } = input;
+  const data = { ...profileInput };
+
+  if (profileInput.username) {
+    const nextUsername = profileInput.username.trim();
+    const usernameChanged = nextUsername.toLowerCase() !== currentUser.username.toLowerCase();
+
+    if (usernameChanged) {
+      const existingUser = await userRepository.findUserByUsername(nextUsername);
+
+      if (existingUser && existingUser.id !== userId) {
+        throw new AppError('Username already exists', 409, ERROR_CODES.USERNAME_ALREADY_EXISTS);
+      }
+    }
+
+    data.username = nextUsername;
+  }
+
+  const avatarFile = files.avatar?.[0];
+  const bannerFile = files.banner?.[0];
+
+  if (avatarFile) {
+    data.avatarUrl = await uploadAvatar(avatarFile, userId);
+  }
+
+  if (bannerFile) {
+    data.bannerUrl = await uploadBanner(bannerFile, userId);
+  }
+
+  const user = await userRepository.updateUserProfile(userId, data);
 
   return serializeEditableProfile(user);
 }
