@@ -23,10 +23,18 @@ function updateUserPassword(userId, passwordHash) {
   });
 }
 
+function updateUserProfile(userId, data) {
+  return prisma.user.update({
+    where: { id: userId },
+    data,
+  });
+}
+
 module.exports = {
   findUserByUsername,
   findUserByEmail,
   findUserById,
   createUser,
   updateUserPassword,
+  updateUserProfile,
 };
