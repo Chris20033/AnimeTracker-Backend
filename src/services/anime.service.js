@@ -1,5 +1,5 @@
 const { ERROR_CODES } = require('../constants/errorCodes');
-const { JIKAN_SOURCE } = require('../integrations/jikan/jikan.mapper');
+const { KITSU_SOURCE } = require('../integrations/kitsu/kitsu.mapper');
 const externalAnimeService = require('./externalAnime.service');
 const { AppError } = require('../utils/AppError');
 
@@ -16,7 +16,7 @@ async function getAnimeGenres() {
 }
 
 async function getAnimeDetail({ source, externalId }) {
-  if (source !== JIKAN_SOURCE) {
+  if (source !== KITSU_SOURCE) {
     throw new AppError('Anime source is not supported', 400, ERROR_CODES.VALIDATION_ERROR);
   }
 

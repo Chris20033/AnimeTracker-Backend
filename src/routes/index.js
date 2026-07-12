@@ -5,6 +5,7 @@ const animeRoutes = require('./anime.routes');
 const docsRoutes = require('./docs.routes');
 const healthRoutes = require('./health.routes');
 const homeRoutes = require('./home.routes');
+const libraryRoutes = require('./library.routes');
 const userRoutes = require('./user.routes');
 
 const router = Router();
@@ -14,6 +15,7 @@ router.use('/health', healthRoutes);
 router.use('/home', homeRoutes);
 router.use('/auth', authRoutes);
 router.use('/anime', animeRoutes);
+router.use('/library', libraryRoutes);
 router.use('/users', userRoutes);
 
 module.exports = router;
