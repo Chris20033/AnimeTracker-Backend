@@ -1,5 +1,4 @@
 const { ERROR_CODES } = require('../constants/errorCodes');
-const animeRepository = require('../repositories/anime.repository');
 const libraryRepository = require('../repositories/library.repository');
 const animeService = require('./anime.service');
 const { AppError } = require('../utils/AppError');
@@ -55,7 +54,7 @@ async function getLibrary(userId, filters) {
 }
 
 async function addToLibrary(userId, input) {
-  const anime = await findOrCreateAnime(input.source, input.externalId);
+  const anime = await animeService.findOrCreateAnime(input);
   const existingEntry = await libraryRepository.findLibraryEntryByAnime(userId, anime.id);
 
   if (existingEntry) {
@@ -96,49 +95,6 @@ async function findOwnedLibraryEntry(userId, id) {
   }
 
   return entry;
-}
-
-async function findOrCreateAnime(source, externalId) {
-  const existingAnime = await animeRepository.findAnimeBySourceAndExternalId(source, externalId);
-
-  if (existingAnime) {
-    return refreshAnimeSearchDataIfNeeded(existingAnime);
-  }
-
-  const detail = await animeService.getAnimeDetail({ source, externalId });
-
-  return animeRepository.createAnime(mapAnimeDetailToPersistence(detail));
-}
-
-async function refreshAnimeSearchDataIfNeeded(anime) {
-  if (anime.alternativeTitles.length > 0 && anime.searchText) {
-    return anime;
-  }
-
-  const detail = await animeService.getAnimeDetail({ source: anime.source, externalId: anime.externalId });
-
-  return animeRepository.updateAnime(anime.id, mapAnimeDetailToPersistence(detail));
-}
-
-function mapAnimeDetailToPersistence(detail) {
-  return {
-    externalId: detail.externalId,
-    source: detail.source,
-    title: detail.title,
-    titleEnglish: detail.titleEnglish,
-    alternativeTitles: detail.alternativeTitles,
-    searchText: detail.searchText,
-    synopsis: detail.synopsis,
-    imageUrl: detail.imageUrl,
-    episodes: detail.episodes,
-    duration: detail.duration,
-    status: detail.status,
-    type: detail.type,
-    season: detail.season,
-    year: detail.year,
-    score: detail.score,
-    genres: detail.genres,
-  };
 }
 
 function validateLibraryProgress(entry) {
