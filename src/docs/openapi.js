@@ -18,6 +18,8 @@ const openApiSpec = {
     { name: 'Anime', description: 'Busqueda y detalle de anime desde Kitsu' },
     { name: 'Home', description: 'Contenido publico para la pagina principal' },
     { name: 'Library', description: 'Biblioteca personal de anime' },
+    { name: 'Favorites', description: 'Anime favoritos del usuario' },
+    { name: 'Statistics', description: 'Estadisticas personales y publicas' },
   ],
   components: {
     securitySchemes: {
@@ -89,16 +91,8 @@ const openApiSpec = {
           avatarUrl: { type: 'string', nullable: true, example: null },
           bannerUrl: { type: 'string', nullable: true, example: null },
           bio: { type: 'string', nullable: true, example: null },
-          favorites: { type: 'array', items: { type: 'object' } },
-          statistics: {
-            type: 'object',
-            properties: {
-              totalAnime: { type: 'number', example: 0 },
-              completedAnime: { type: 'number', example: 0 },
-              totalEpisodesWatched: { type: 'number', example: 0 },
-              averageScore: { type: 'number', nullable: true, example: null },
-            },
-          },
+          favorites: { type: 'array', items: { $ref: '#/components/schemas/FavoriteEntry' } },
+          statistics: { $ref: '#/components/schemas/StatisticsSummary' },
         },
       },
       AnimeSearchItem: {
@@ -203,6 +197,71 @@ const openApiSpec = {
           updatedAt: { type: 'string', format: 'date-time' },
           anime: { $ref: '#/components/schemas/LibraryAnime' },
         },
+      },
+      FavoriteAnime: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          externalId: { type: 'string', example: '7442' },
+          source: { type: 'string', example: 'KITSU' },
+          title: { type: 'string', example: 'Attack on Titan' },
+          titleEnglish: { type: 'string', nullable: true, example: 'Attack on Titan' },
+          alternativeTitles: { type: 'array', items: { type: 'string' }, example: ['Attack on Titan', 'Shingeki no Kyojin'] },
+          imageUrl: { type: 'string', nullable: true, example: 'https://media.kitsu.app/anime/poster_images/7442/large.jpg' },
+          episodes: { type: 'number', nullable: true, example: 25 },
+          status: { type: 'string', nullable: true, example: 'finished' },
+          type: { type: 'string', nullable: true, example: 'TV' },
+          year: { type: 'number', nullable: true, example: 2013 },
+          score: { type: 'number', nullable: true, example: 8.45 },
+        },
+      },
+      FavoriteEntry: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          createdAt: { type: 'string', format: 'date-time' },
+          anime: { $ref: '#/components/schemas/FavoriteAnime' },
+        },
+      },
+      StatisticsSummary: {
+        type: 'object',
+        properties: {
+          totalAnime: { type: 'number', example: 3 },
+          completedAnime: { type: 'number', example: 1 },
+          totalEpisodesWatched: { type: 'number', example: 42 },
+          averageScore: { type: 'number', nullable: true, example: 8.5 },
+          topGenres: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', example: 'Action' },
+                count: { type: 'number', example: 2 },
+              },
+            },
+          },
+          statusDistribution: {
+            type: 'object',
+            properties: {
+              WATCHING: { type: 'number', example: 1 },
+              COMPLETED: { type: 'number', example: 1 },
+              ON_HOLD: { type: 'number', example: 0 },
+              DROPPED: { type: 'number', example: 0 },
+              PLAN_TO_WATCH: { type: 'number', example: 1 },
+            },
+          },
+        },
+      },
+      PublicStatisticsSummary: {
+        allOf: [
+          { $ref: '#/components/schemas/StatisticsSummary' },
+          {
+            type: 'object',
+            properties: {
+              username: { type: 'string', example: 'animefan' },
+            },
+          },
+        ],
       },
     },
   },
@@ -697,6 +756,80 @@ const openApiSpec = {
           204: { description: 'Registro eliminado' },
           401: { description: 'Token ausente o invalido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
           404: { description: 'Registro no encontrado', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/api/favorites': {
+      get: {
+        tags: ['Favorites'],
+        summary: 'Lista favoritos del usuario autenticado',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Favoritos del usuario', content: { 'application/json': { schema: { type: 'object', properties: { data: { type: 'array', items: { $ref: '#/components/schemas/FavoriteEntry' } } } } } } },
+          401: { description: 'Token ausente o invalido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      post: {
+        tags: ['Favorites'],
+        summary: 'Marca un anime como favorito',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['source', 'externalId'],
+                properties: {
+                  source: { type: 'string', enum: ['KITSU'], example: 'KITSU' },
+                  externalId: { type: 'string', pattern: '^[1-9]\\d*$', example: '7442' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: 'Favorito creado', content: { 'application/json': { schema: { type: 'object', properties: { data: { $ref: '#/components/schemas/FavoriteEntry' } } } } } },
+          400: { description: 'Datos invalidos', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          401: { description: 'Token ausente o invalido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          409: { description: 'Favorito duplicado', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          503: { description: 'Fallo temporal de API externa al persistir anime', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/api/favorites/{id}': {
+      delete: {
+        tags: ['Favorites'],
+        summary: 'Quita un anime de favoritos',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          204: { description: 'Favorito eliminado' },
+          401: { description: 'Token ausente o invalido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          404: { description: 'Favorito no encontrado', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/api/statistics/me': {
+      get: {
+        tags: ['Statistics'],
+        summary: 'Obtiene estadisticas del usuario autenticado',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Estadisticas personales', content: { 'application/json': { schema: { type: 'object', properties: { data: { $ref: '#/components/schemas/StatisticsSummary' } } } } } },
+          401: { description: 'Token ausente o invalido', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/api/statistics/users/{username}': {
+      get: {
+        tags: ['Statistics'],
+        summary: 'Obtiene estadisticas publicas de un usuario',
+        parameters: [{ name: 'username', in: 'path', required: true, schema: { type: 'string', minLength: 3, maxLength: 30 } }],
+        responses: {
+          200: { description: 'Estadisticas publicas', content: { 'application/json': { schema: { type: 'object', properties: { data: { $ref: '#/components/schemas/PublicStatisticsSummary' } } } } } },
+          400: { description: 'Datos invalidos', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          404: { description: 'Usuario no encontrado', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
         },
       },
     },

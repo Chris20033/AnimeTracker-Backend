@@ -1,5 +1,6 @@
 const { ERROR_CODES } = require('../constants/errorCodes');
 const favoriteService = require('./favorite.service');
+const statisticsService = require('./statistics.service');
 const userRepository = require('../repositories/user.repository');
 const { uploadAvatar, uploadBanner } = require('./cloudinary.service');
 const { AppError } = require('../utils/AppError');
@@ -28,7 +29,7 @@ function serializeEditableProfile(user) {
   };
 }
 
-function serializePublicProfile(user, favorites = []) {
+function serializePublicProfile(user, favorites = [], statistics = null) {
   return {
     id: user.id,
     username: user.username,
@@ -36,11 +37,19 @@ function serializePublicProfile(user, favorites = []) {
     bannerUrl: user.bannerUrl,
     bio: user.bio,
     favorites,
-    statistics: {
+    statistics: statistics || {
       totalAnime: 0,
       completedAnime: 0,
       totalEpisodesWatched: 0,
       averageScore: null,
+      topGenres: [],
+      statusDistribution: {
+        WATCHING: 0,
+        COMPLETED: 0,
+        ON_HOLD: 0,
+        DROPPED: 0,
+        PLAN_TO_WATCH: 0,
+      },
     },
   };
 }
@@ -104,8 +113,9 @@ async function getPublicProfile(username) {
   }
 
   const favorites = await favoriteService.getPublicFavorites(user.id);
+  const statistics = await statisticsService.getStatisticsForUserId(user.id);
 
-  return serializePublicProfile(user, favorites);
+  return serializePublicProfile(user, favorites, statistics);
 }
 
 module.exports = { getMe, updateMe, getPublicProfile };
