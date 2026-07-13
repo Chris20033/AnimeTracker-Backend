@@ -18,7 +18,12 @@ async function getAnimeGenres() {
 
 async function getAnimeDetail({ source, externalId }) {
   if (source !== KITSU_SOURCE) {
-    throw new AppError('Anime source is not supported', 400, ERROR_CODES.VALIDATION_ERROR);
+    throw new AppError('Anime source is not supported', 400, ERROR_CODES.VALIDATION_ERROR, [
+      {
+        field: 'source',
+        message: `Only ${KITSU_SOURCE} is supported`,
+      },
+    ]);
   }
 
   return externalAnimeService.getAnimeDetail(externalId);

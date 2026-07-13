@@ -377,6 +377,7 @@ const openApiSpec = {
             content: {
               'application/json': {
                 example: {
+                  data: null,
                   message: 'If the email exists, a recovery link will be sent',
                 },
               },
@@ -411,6 +412,7 @@ const openApiSpec = {
             content: {
               'application/json': {
                 example: {
+                  data: null,
                   message: 'Password updated successfully',
                 },
               },
