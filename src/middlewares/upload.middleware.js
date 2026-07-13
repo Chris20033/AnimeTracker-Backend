@@ -13,7 +13,12 @@ const profileUpload = multer({
   },
   fileFilter: (req, file, cb) => {
     if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-      cb(new AppError('Only JPEG, PNG and WebP images are allowed', 400, ERROR_CODES.VALIDATION_ERROR));
+      cb(new AppError('Only JPEG, PNG and WebP images are allowed', 400, ERROR_CODES.VALIDATION_ERROR, [
+        {
+          field: file.fieldname,
+          message: 'Only JPEG, PNG and WebP images are allowed',
+        },
+      ]));
       return;
     }
 

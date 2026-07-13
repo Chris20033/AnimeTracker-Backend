@@ -21,13 +21,13 @@ function logout(req, res) {
 const forgotPassword = asyncHandler(async (req, res) => {
   const data = await authService.forgotPassword(req.validated.body);
 
-  return res.status(200).json(data);
+  return sendSuccess(res, null, 200, data.message);
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
   const data = await authService.resetPassword(req.validated.body);
 
-  return res.status(200).json(data);
+  return sendSuccess(res, null, 200, data.message);
 });
 
 const validateResetToken = asyncHandler(async (req, res) => {

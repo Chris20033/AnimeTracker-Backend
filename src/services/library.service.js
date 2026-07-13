@@ -99,11 +99,21 @@ async function findOwnedLibraryEntry(userId, id) {
 
 function validateLibraryProgress(entry) {
   if (entry.anime.episodes && entry.episodesWatched > entry.anime.episodes) {
-    throw new AppError('Episodes watched cannot exceed anime episodes', 422, ERROR_CODES.VALIDATION_ERROR);
+    throw new AppError('Episodes watched cannot exceed anime episodes', 422, ERROR_CODES.VALIDATION_ERROR, [
+      {
+        field: 'episodesWatched',
+        message: `Episodes watched cannot exceed ${entry.anime.episodes}`,
+      },
+    ]);
   }
 
   if (entry.startedAt && entry.finishedAt && entry.finishedAt < entry.startedAt) {
-    throw new AppError('finishedAt cannot be before startedAt', 422, ERROR_CODES.VALIDATION_ERROR);
+    throw new AppError('finishedAt cannot be before startedAt', 422, ERROR_CODES.VALIDATION_ERROR, [
+      {
+        field: 'finishedAt',
+        message: 'Finished date cannot be before started date',
+      },
+    ]);
   }
 }
 

@@ -2,7 +2,7 @@ const kitsuClient = require('../integrations/kitsu/kitsu.client');
 const { mapHomeItem } = require('../integrations/kitsu/kitsu.mapper');
 
 const HOME_LIMIT = 10;
-const HERO_LIMIT = 5;
+const HERO_LIMIT = 10;
 
 function mapList(response) {
   return Array.isArray(response.data) ? response.data.map(mapHomeItem) : [];
