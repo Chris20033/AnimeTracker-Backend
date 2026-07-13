@@ -41,6 +41,23 @@ function getTitleEnglish(attributes) {
   return attributes.titles?.en || attributes.titles?.en_us || null;
 }
 
+function getAlternativeTitles(attributes) {
+  const titles = [
+    attributes.canonicalTitle,
+    attributes.titles?.en,
+    attributes.titles?.en_us,
+    attributes.titles?.en_jp,
+    attributes.titles?.ja_jp,
+    ...(Array.isArray(attributes.abbreviatedTitles) ? attributes.abbreviatedTitles : []),
+  ];
+
+  return Array.from(new Set(titles.filter(Boolean)));
+}
+
+function getSearchText(attributes) {
+  return getAlternativeTitles(attributes).join(' ').toLowerCase();
+}
+
 function getSeason(date) {
   if (!date) return null;
 
@@ -61,6 +78,7 @@ function mapSearchItem(resource) {
     externalId: String(resource.id),
     source: KITSU_SOURCE,
     title: attributes.canonicalTitle || getTitleEnglish(attributes) || 'Untitled',
+    alternativeTitles: getAlternativeTitles(attributes),
     imageUrl: getPosterImage(attributes),
     type: attributes.subtype || attributes.showType || null,
     year: getYear(attributes.startDate),
@@ -94,6 +112,8 @@ function mapDetail(response) {
     source: KITSU_SOURCE,
     title: attributes.canonicalTitle || getTitleEnglish(attributes) || 'Untitled',
     titleEnglish: getTitleEnglish(attributes),
+    alternativeTitles: getAlternativeTitles(attributes),
+    searchText: getSearchText(attributes),
     synopsis: attributes.synopsis || attributes.description || null,
     imageUrl: getPosterImage(attributes),
     episodes: attributes.episodeCount || null,

@@ -63,6 +63,16 @@ function buildWhere(userId, filters) {
     where.status = filters.status;
   }
 
+  if (filters.q) {
+    where.anime = {
+      is: {
+        searchText: {
+          contains: filters.q.trim().toLowerCase(),
+        },
+      },
+    };
+  }
+
   return where;
 }
 

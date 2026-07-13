@@ -6,6 +6,7 @@ const dateSchema = z.coerce.date();
 const getLibrarySchema = z.object({
   query: z.object({
     status: z.enum(libraryStatuses).optional(),
+    q: z.string().trim().min(1).max(100).optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(50).default(20),
   }),

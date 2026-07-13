@@ -31,4 +31,13 @@ function createAnime(data) {
   });
 }
 
-module.exports = { findAnimeBySourceAndExternalId, createAnime };
+function updateAnime(id, data) {
+  const { genres, ...animeData } = data;
+
+  return prisma.anime.update({
+    where: { id },
+    data: animeData,
+  });
+}
+
+module.exports = { findAnimeBySourceAndExternalId, createAnime, updateAnime };

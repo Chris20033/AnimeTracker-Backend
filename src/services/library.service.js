@@ -26,6 +26,7 @@ function serializeAnime(anime) {
     source: anime.source,
     title: anime.title,
     titleEnglish: anime.titleEnglish,
+    alternativeTitles: anime.alternativeTitles || [],
     imageUrl: anime.imageUrl,
     episodes: anime.episodes,
     status: anime.status,
@@ -65,7 +66,7 @@ async function addToLibrary(userId, input) {
     userId,
     animeId: anime.id,
     status: input.status,
-    episodesWatched: 0,
+    episodesWatched: input.status === 'COMPLETED' && anime.episodes ? anime.episodes : 0,
   });
 
   return serializeLibraryEntry(entry);
@@ -101,16 +102,32 @@ async function findOrCreateAnime(source, externalId) {
   const existingAnime = await animeRepository.findAnimeBySourceAndExternalId(source, externalId);
 
   if (existingAnime) {
-    return existingAnime;
+    return refreshAnimeSearchDataIfNeeded(existingAnime);
   }
 
   const detail = await animeService.getAnimeDetail({ source, externalId });
 
-  return animeRepository.createAnime({
+  return animeRepository.createAnime(mapAnimeDetailToPersistence(detail));
+}
+
+async function refreshAnimeSearchDataIfNeeded(anime) {
+  if (anime.alternativeTitles.length > 0 && anime.searchText) {
+    return anime;
+  }
+
+  const detail = await animeService.getAnimeDetail({ source: anime.source, externalId: anime.externalId });
+
+  return animeRepository.updateAnime(anime.id, mapAnimeDetailToPersistence(detail));
+}
+
+function mapAnimeDetailToPersistence(detail) {
+  return {
     externalId: detail.externalId,
     source: detail.source,
     title: detail.title,
     titleEnglish: detail.titleEnglish,
+    alternativeTitles: detail.alternativeTitles,
+    searchText: detail.searchText,
     synopsis: detail.synopsis,
     imageUrl: detail.imageUrl,
     episodes: detail.episodes,
@@ -121,7 +138,7 @@ async function findOrCreateAnime(source, externalId) {
     year: detail.year,
     score: detail.score,
     genres: detail.genres,
-  });
+  };
 }
 
 function validateLibraryProgress(entry) {
