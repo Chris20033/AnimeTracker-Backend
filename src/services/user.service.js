@@ -1,4 +1,5 @@
 const { ERROR_CODES } = require('../constants/errorCodes');
+const favoriteService = require('./favorite.service');
 const userRepository = require('../repositories/user.repository');
 const { uploadAvatar, uploadBanner } = require('./cloudinary.service');
 const { AppError } = require('../utils/AppError');
@@ -27,14 +28,14 @@ function serializeEditableProfile(user) {
   };
 }
 
-function serializePublicProfile(user) {
+function serializePublicProfile(user, favorites = []) {
   return {
     id: user.id,
     username: user.username,
     avatarUrl: user.avatarUrl,
     bannerUrl: user.bannerUrl,
     bio: user.bio,
-    favorites: [],
+    favorites,
     statistics: {
       totalAnime: 0,
       completedAnime: 0,
@@ -102,7 +103,9 @@ async function getPublicProfile(username) {
     throw new AppError('User not found', 404, ERROR_CODES.RESOURCE_NOT_FOUND);
   }
 
-  return serializePublicProfile(user);
+  const favorites = await favoriteService.getPublicFavorites(user.id);
+
+  return serializePublicProfile(user, favorites);
 }
 
 module.exports = { getMe, updateMe, getPublicProfile };
