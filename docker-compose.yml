@@ -8,6 +8,7 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/animetracker?schema=public
+      DATABASE_URL_TEST: postgresql://postgres:postgres@postgres:5432/animetracker_test?schema=public
       PORT: 3000
       JWT_SECRET: change-me
       JWT_EXPIRES_IN: 1d
