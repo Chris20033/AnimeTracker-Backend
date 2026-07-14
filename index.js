@@ -6,6 +6,6 @@ app.get("/", (req, res) => {
     res.send("Hola desde Express");
 });
 
-app.listen(3000, () => {
-    console.log("Servidor iniciado en http://localhost:3000");
+app.listen(process.env.PORT, () => {
+    console.log(`Servidor iniciado en http://localhost:${process.env.PORT}`);
 });
