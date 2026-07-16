@@ -10,7 +10,7 @@ El proyecto esta construido como pieza de portafolio profesional, con una arquit
 - API REST documentada con Swagger.
 - Backend cubierto con pruebas unitarias e integracion.
 - Flujo end-to-end validado desde el frontend con Playwright.
-- Despliegue en produccion pendiente.
+- Despliegue en produccion en VPS propia.
 
 ## Funcionalidades
 
